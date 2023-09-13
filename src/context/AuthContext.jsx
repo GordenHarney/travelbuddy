@@ -1,7 +1,6 @@
 import { createContext, useState, useContext, useEffect } from "react";
-import { GoogleAuthProvider, onAuthStateChanged, signInWithRedirect, signOut } from "firebase/auth";
-import { query, where, getDocs, collection, addDoc } from "firebase/firestore";
-import { auth, db } from "../firebase";
+import { handleSignup, handleLogin } from "../utils/auth";
+import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext();
 
@@ -9,57 +8,71 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showSignUpPrompt, setShowSignUpPrompt] = useState(false);
+  const navigate = useNavigate();
 
-  const signInWithGoogle = async () => {
-    const provider = new GoogleAuthProvider();
-    const userCredential = await signInWithRedirect(auth, provider);
-    const user = userCredential.user;
-
-    // Add the user to Firestore after successful sign-up
-    await addDoc(collection(db, "users"), {
-      email: user.email,
-      name: user.displayName,
-    });
-
-    setCurrentUser(user);
+  const signUpWithAPI = async (username, password) => {
+    try {
+      await handleSignup(username, password);
+      setCurrentUser(username); // Set the username as the current user after signup
+      localStorage.setItem("currentUser", username); // Store the username in localStorage
+    } catch (error) {
+      console.error("Error:", error);
+    }
   };
 
-  const logout = () => signOut(auth);
+  const signInWithAPI = async (username, password) => {
+    try {
+      const response = await handleLogin(username, password);
+      if (response?.success) {
+        setCurrentUser(username); // Set the username as the current user
+        localStorage.setItem("currentUser", username); // Store the username in localStorage
+      }
+      console.log(response);
+      console.log(response?.needsVerification);
+      if (response?.success) {
+        console.log();
+        return {
+          success: response?.success,
+          needsVerification: response?.needsVerification,
+        };
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      return { error: error };
+    }
+  };
+
+  const logout = () => {
+    setCurrentUser(null); // Log out by setting user to null
+    localStorage.removeItem("currentUser"); // Remove the user from localStorage
+    navigate("/");
+  };
 
   useEffect(() => {
-    const checkIfUserIsAuthorized = async (user) => {
-      if (user) {
-        const usersRef = collection(db, "users");
-        const q = query(usersRef, where("email", "==", user.email));
-        const querySnapshot = await getDocs(q);
+    // Check if the user is already authenticated by looking in localStorage
+    const loggedInUser = localStorage.getItem("currentUser");
+    if (loggedInUser) {
+      setCurrentUser(loggedInUser);
+    }
 
-        if (!querySnapshot.empty) {
-          setCurrentUser(user);
-        } else {
-          logout();  // If user is not authorized, logout
-          setCurrentUser(null); // Reset to null for safety
-          setShowSignUpPrompt(true);
-        }
-      } else {
-        setCurrentUser(null);
-      }
-      setLoading(false);
-    };
-
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      checkIfUserIsAuthorized(user);
-    });
-
-    return unsubscribe;
+    setLoading(false);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ currentUser, signInWithGoogle, logout }}>
+    <AuthContext.Provider
+      value={{ currentUser, signInWithAPI, signUpWithAPI, logout }}
+    >
       {!loading && children}
       {showSignUpPrompt && (
         <div className="signup-modal modal-box py-5 px-5">
           <p>You are not authorized. Please sign up to continue.</p>
-          <button onClick={signInWithGoogle}>Sign Up with Google</button>
+          <button
+            onClick={() => {
+              navigate("/signup");
+            }}
+          >
+            Sign Up
+          </button>
         </div>
       )}
     </AuthContext.Provider>

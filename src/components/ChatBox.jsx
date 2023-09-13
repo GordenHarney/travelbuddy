@@ -20,6 +20,7 @@ const ChatBox = () => {
   const [disabledStatus, setDisabledStatus] = useState({});
   const [openAiResponse, setOpenAiResponse] = useState(null);
   const { currentUser } = UserAuth();
+  
 
   useEffect(() => {
     const q = query(collection(db, "questions"), orderBy("sequence"));
@@ -59,7 +60,7 @@ const ChatBox = () => {
   const saveToFirebase = async () => {
     try {
       await addDoc(collection(db, "chat_history"), {
-        userId: currentUser.uid,
+        userId: currentUser,
         answers,
         timestamp: serverTimestamp(),
       });

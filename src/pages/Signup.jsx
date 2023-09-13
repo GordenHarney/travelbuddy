@@ -1,47 +1,29 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { handleSignup } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
-import { UserAuth } from "../context/AuthContext";
 
-const Login = () => {
-  const navigate = useNavigate();
-  const { currentUser, signInWithAPI, logout } = UserAuth();
+const Signup = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
-  const handleLoginClick = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const response = await signInWithAPI(username, password);
-      console.log(response)
-      console.log(response?.needsVerification)
-      if (response && response?.needsVerification && response?.success) {
-        navigate("/verify");
-      } else {
-        navigate("/landing");
-      }
-    } catch (error) {
-      alert(error.message || "An error occurred. Please try again.");
-      logout();
-    }
+    await handleSignup(username, password);
+    navigate("/login");
   };
 
-  const handleSignUpButton = () => {
-    navigate("/signup");
-  }
-
-  useEffect(() => {
-    if (currentUser) {
-      navigate("/landing");
-    }
-  }, [currentUser]);
+  const handleLoginButton = () => {
+    navigate("/login");
+  };
 
   return (
     <div className="hero min-h-screen bg-base-200">
       <div className="hero-content text-center">
         <div className="max-w-md">
-          <h1 className="text-5xl font-bold">Login</h1>
-          <div className="containerWrap py-6">
-            <form className="form-control" onSubmit={handleLoginClick}>
+          <h1 className="text-5xl font-bold">Sign Up</h1>
+          <div className="containerWrap py-8">
+            <form className="form-control" onSubmit={handleSubmit}>
               <input
                 className="input input-bordered input-accent"
                 type="email"
@@ -57,16 +39,16 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
               />
               <button type="submit" className="btn btn-neutral">
-                Login
+                Sign Up
               </button>
             </form>
           </div>
           <button
-            onClick={handleSignUpButton}
+            onClick={handleLoginButton}
             type="submit"
             className="btn btn-neutral"
           >
-            Signup
+            Login
           </button>
         </div>
       </div>
@@ -74,4 +56,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Signup;
