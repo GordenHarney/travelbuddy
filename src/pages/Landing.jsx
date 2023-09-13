@@ -8,9 +8,9 @@ const Landing = () => {
   return (
     <div>
       <Carousel />
-      <LandingSection1 />
-      <LandingSection2 />
       <LandingSection3 />
+      <LandingSection2 />
+      <LandingSection1 />
       <Footer />
     </div>
   );
