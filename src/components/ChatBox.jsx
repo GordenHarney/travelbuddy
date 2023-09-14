@@ -1,10 +1,8 @@
 import {
-  addDoc,
   collection,
   query,
   onSnapshot,
   orderBy,
-  serverTimestamp,
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import Question from "./Question";
