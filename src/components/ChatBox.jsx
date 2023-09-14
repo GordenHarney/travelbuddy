@@ -20,7 +20,6 @@ const ChatBox = () => {
   const [disabledStatus, setDisabledStatus] = useState({});
   const [openAiResponse, setOpenAiResponse] = useState(null);
   const { currentUser } = UserAuth();
-  
 
   useEffect(() => {
     const q = query(collection(db, "questions"), orderBy("sequence"));
@@ -57,13 +56,37 @@ const ChatBox = () => {
     setCurrentQuestionIndex((prev) => prev - 1);
   };
 
+  const addChatHistory = async (userId, answers) => {
+    const backendUrl = import.meta.env.VITE_APP_BACKEND_URL;
+    const response = await fetch(`${backendUrl}/add_chat_history`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userId: userId,
+        answers: answers,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.status !== 200) {
+      throw new Error(data.error);
+    }
+
+    return data;
+  };
+
   const saveToFirebase = async () => {
     try {
-      await addDoc(collection(db, "chat_history"), {
-        userId: currentUser,
-        answers,
-        timestamp: serverTimestamp(),
-      });
+      // await addDoc(collection(db, "chat_history"), {
+      //   userId: currentUser,
+      //   answers,
+      //   timestamp: serverTimestamp(),
+      // });
+      const result = await addChatHistory(currentUser, answers);
+      console.log(result.message); // "Chat history added successfully!"
       const recommendation = await askOpenAi(answers);
       setOpenAiResponse(recommendation);
       console.log(recommendation);
@@ -89,7 +112,7 @@ const ChatBox = () => {
           Submit Your Answers
         </button>
       )}
-       {openAiResponse && <Response message={openAiResponse} />}
+      {openAiResponse && <Response message={openAiResponse} />}
     </div>
   );
 };
