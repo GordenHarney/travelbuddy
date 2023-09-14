@@ -10,10 +10,11 @@ const Verification = () => {
   const [code, setCode] = useState("");
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
+  const backendUrl = import.meta.env.VITE_APP_BACKEND_URL;
 
   const handleVerification = async () => {
     try {
-      const response = await axios.post("http://localhost:5001/verify", {
+      const response = await axios.post(`${backendUrl}/verify`, {
         username: username,
         code: code,
       });
@@ -31,7 +32,7 @@ const Verification = () => {
   const handleResendVerification = async () => {
     try {
       const response = await axios.post(
-        "http://localhost:5001/resend_verification",
+        `${backendUrl}/resend_verification`,
         {
           username: username,
         }

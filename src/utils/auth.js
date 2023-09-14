@@ -2,7 +2,8 @@ import axios from "axios";
 
 // Function to handle user signup
 async function handleSignup(username, password) {
-  const endpoint = "http://localhost:5001/signup";
+  const backendUrl = import.meta.env.VITE_APP_BACKEND_URL;
+  const endpoint = `${backendUrl}/signup`;
   const payload = {
     username: username,
     password: password,
@@ -30,7 +31,8 @@ async function handleSignup(username, password) {
 
 // Function to handle user login
 async function handleLogin(username, password) {
-  const endpoint = "http://localhost:5001/login";
+  const backendUrl = import.meta.env.VITE_APP_BACKEND_URL;
+  const endpoint = `${backendUrl}/login`;
   const payload = {
     username: username,
     password: password,
